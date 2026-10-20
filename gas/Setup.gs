@@ -27,10 +27,13 @@ function setup() {
     console.log('写真フォルダを作成しました: ' + folder.getUrl());
   }
 
+  // 値はスクリプト プロパティで確認する（ログには残さない）
   if (!props.getProperty('SHARED_SECRET')) {
     props.setProperty('SHARED_SECRET', Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, ''));
+    console.log('SHARED_SECRET を作成しました');
+  } else {
+    console.log('SHARED_SECRET は作成済みです');
   }
-  console.log('Workers の GAS_SHARED_SECRET に登録する値: ' + props.getProperty('SHARED_SECRET'));
 
   const missing = REQUIRED_PROPS.filter((name) => !props.getProperty(name));
   if (missing.length) {

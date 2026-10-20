@@ -1,24 +1,37 @@
 # 設定手順
 
-上から順番に進めてください。途中でメモする値が多いので、下の **メモ表** を手元のメモアプリにコピーして埋めていくと楽です。
+上から順番に進めてください。
+
+> **⚠ このファイルは GitHub で公開されています。このファイルには値を書き込まないでください。**
+
+## 値の扱い方
+
+設定の途中で出てくる値は、次の2種類に分けて扱います。
+
+**秘密の値（メモしない）**
+
+| 値 | 必要になったときに確認する場所 |
+|---|---|
+| チャネルシークレット | LINE Developers → Messaging API チャネル →「チャネル基本設定」タブ |
+| チャネルアクセストークン | LINE Developers → Messaging API チャネル →「Messaging API設定」タブの一番下 |
+| SHARED_SECRET | Apps Script →（歯車）プロジェクトの設定 →「スクリプト プロパティ」 |
+| 自分と友人のユーザー ID | スプレッドシートの `unknown_users` シート（登録後は上と同じスクリプト プロパティ） |
+
+これらはどこにも書き留めず、**必要な手順のときにその画面を開いてコピーし、そのまま貼り付けて** ください。
+GitHub、チャット（Claude を含む）、メモアプリなどには貼らないでください。
+いつでも上の場所で確認でき、漏れたときは作り直せます（[12. 秘密の値が漏れたとき](#12-秘密の値が漏れたとき)）。
+
+**公開してよい値（手元のメモアプリにメモしてよい）**
 
 ```
-【メモ表】
-チャネルシークレット（Messaging API）     :
-チャネルアクセストークン（長期）          :
-LINEログインのチャネルID                :
-GitHub Pages の URL                     : https://nszwjp.github.io/line-diary/
-GAS ウェブアプリ URL                     : https://script.google.com/macros/s/..../exec
-SHARED_SECRET（GAS が自動生成）           :
-LIFF ID                                 :
-LIFF URL                                : https://liff.line.me/<LIFF ID>
-Worker の URL                           : https://<名前>.<アカウント>.workers.dev
-自分のユーザーID                         :
-友人のユーザーID                         :
+LINEログインのチャネルID  :
+GAS ウェブアプリ URL      : https://script.google.com/macros/s/..../exec
+LIFF ID                  :
+LIFF URL                 : https://liff.line.me/<LIFF ID>
+Worker の URL            : https://<名前>.<アカウント>.workers.dev
 ```
 
-> **秘密にする値**：チャネルシークレット、チャネルアクセストークン、SHARED_SECRET。
-> これらは GitHub やチャットに貼らないでください。
+これらは公開されても困りません。一覧ページはLINEのIDトークンで本人確認をしてから本人の日記だけを返します。Webhookは、LINEの署名とSHARED_SECRETがそろわないと受け付けません。そのため、URLやIDを知られても日記は読めず、偽の書き込みもできません。
 
 ---
 
@@ -35,12 +48,13 @@ Worker の URL                           : https://<名前>.<アカウント>.wo
    - Webhook：**オン**
    - 応答メッセージ：**オフ**
 
-## 2. チャネルシークレットとアクセストークンを取得する
+## 2. アクセストークンを発行して友だち追加する
 
 1. https://developers.line.biz/console/ を開き、LINE アカウントでログイン
 2. 手順1で作ったプロバイダー → Messaging API のチャネル（公式アカウントの名前）を開く
-3. **「チャネル基本設定」** タブの **「チャネルシークレット」** をメモ
-4. **「Messaging API設定」** タブの一番下 **「チャネルアクセストークン（長期）」** の **「発行」** を押し、表示された値をメモ
+3. **「チャネル基本設定」** タブに **「チャネルシークレット」** があることを確認（メモ不要。手順8で使います）
+4. **「Messaging API設定」** タブの一番下 **「チャネルアクセストークン（長期）」** の **「発行」** を押す
+   （発行したトークンはこの画面にずっと表示されるので、メモ不要。手順7で使います）
 5. 同じタブにある **QRコード** をスマホで読み取り、自分のLINEで友だち追加する（友人にもこのQRを送って追加してもらう）
 
 ## 3. LINEログインチャネルを作る（LIFF 用）
@@ -85,7 +99,8 @@ LIFF アプリの追加は、ページの URL が決まってから（手順6で
 2. 「承認が必要です」と出たら **「権限を確認」** → 自分の Google アカウントを選ぶ
 3. 「Google はこのアプリを確認していません」と出たら、**「詳細」** → **「LINE日記（安全ではないページ）に移動」** → **「すべて選択」** にチェック → **「続行」**
    （自分で作ったスクリプトなので問題ありません）
-4. 下の「実行ログ」に `Workers の GAS_SHARED_SECRET に登録する値: xxxx` と出るので、その値を SHARED_SECRET としてメモ
+4. 下の「実行ログ」に `SHARED_SECRET を作成しました` と出ることを確認
+   （値は自動でスクリプト プロパティに保存されています。メモ不要。手順8で使います）
 5. スプレッドシートに `entries` と `unknown_users` シートができ、Google ドライブに `LINE日記_写真` フォルダができていることを確認
    （このフォルダは非公開のままにしてください。共有設定は変更しないでください）
 
@@ -150,7 +165,7 @@ API_URL: 'https://script.google.com/macros/s/..../exec', // 5-3 の URL
 
 | プロパティ | 値 |
 |---|---|
-| `CHANNEL_ACCESS_TOKEN` | 手順2のチャネルアクセストークン |
+| `CHANNEL_ACCESS_TOKEN` | 別のタブで LINE Developers → Messaging API チャネル →「Messaging API設定」タブの一番下を開き、チャネルアクセストークンをコピーして貼り付ける |
 | `LIFF_CHANNEL_ID` | 手順3の LINE ログインのチャネル ID |
 | `LIFF_URL` | 6-1 の LIFF URL（`https://liff.line.me/...`） |
 | `RICHMENU_IMAGE_URL` | `https://nszwjp.github.io/line-diary/richmenu/richmenu.png` |
@@ -168,9 +183,9 @@ API_URL: 'https://script.google.com/macros/s/..../exec', // 5-3 の URL
 
 | 変数名 | 値 |
 |---|---|
-| `LINE_CHANNEL_SECRET` | 手順2のチャネルシークレット |
+| `LINE_CHANNEL_SECRET` | 別のタブで LINE Developers → Messaging API チャネル →「チャネル基本設定」タブを開き、チャネルシークレットをコピーして貼り付ける |
 | `GAS_URL` | 5-3 の GAS ウェブアプリ URL |
-| `GAS_SHARED_SECRET` | 5-2 の SHARED_SECRET |
+| `GAS_SHARED_SECRET` | 別のタブで Apps Script →（歯車）プロジェクトの設定 →「スクリプト プロパティ」を開き、`SHARED_SECRET` の値をコピーして貼り付ける |
 
 6. 「デプロイ」を押して保存
 7. Worker の画面に表示される URL（`https://line-diary-webhook.<アカウント>.workers.dev`）をメモ
@@ -189,9 +204,9 @@ API_URL: 'https://script.google.com/macros/s/..../exec', // 5-3 の URL
 1. 自分の LINE から公式アカウントに何か一言送る（返信はありません）
 2. 友人にも何か一言送ってもらう
 3. スプレッドシートの `unknown_users` シートを開くと、`U` で始まる33文字の ID が記録されている。
-   「内容」の列で誰の ID かを見分けてメモする
+   「内容」の列で誰の ID かを見分ける（メモ不要）
    - 自分の ID は、LINE Developers コンソールのチャネル基本設定タブ一番下の **「あなたのユーザーID」** でも確認できます
-4. Apps Script のスクリプトプロパティに次を追加して保存（2つの ID を **カンマ区切り**）
+4. Apps Script のスクリプトプロパティに次を追加して保存（2つの ID を **カンマ区切り**。`unknown_users` シートからコピーして貼り付ける）
 
 | プロパティ | 値 |
 |---|---|
@@ -208,3 +223,16 @@ API_URL: 'https://script.google.com/macros/s/..../exec', // 5-3 の URL
 > そちらで作ったメニューでは「テンプレ」ボタン（postback）が使えず、ボタンを押した操作が日記として保存されてしまいます。
 
 これで設定は完了です。続けて [TESTING.md](TESTING.md) の手順で動作確認をしてください。
+
+## 12. 秘密の値が漏れたとき
+
+GitHub やチャットに貼ってしまった場合は、貼った場所から消すだけでは不十分です（履歴やキャッシュに残ります）。**値そのものを作り直して** ください。
+
+| 漏れた値 | 作り直し方 |
+|---|---|
+| チャネルアクセストークン | LINE Developers →「Messaging API設定」タブ → チャネルアクセストークンの **「再発行」**。新しい値を GAS の `CHANNEL_ACCESS_TOKEN` に貼り直す |
+| チャネルシークレット | LINE Developers →「チャネル基本設定」タブ → チャネルシークレットの **「発行」**（再発行）。新しい値を Worker の `LINE_CHANNEL_SECRET` に貼り直し、Worker を「デプロイ」 |
+| SHARED_SECRET | GAS のスクリプト プロパティで `SHARED_SECRET` を **削除** → `setup` を実行（新しい値が作られる）→ 新しい値を Worker の `GAS_SHARED_SECRET` に貼り直し、Worker を「デプロイ」 |
+| ユーザー ID | 作り直せませんが、許可した2人以外はボットにも一覧ページにも拒否されるので、それだけで日記が読まれることはありません |
+
+作り直したら [TESTING.md](TESTING.md) の「1. テンプレート」と「3. 一覧ページ」で、動いていることを確認してください。
